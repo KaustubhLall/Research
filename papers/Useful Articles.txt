@@ -1,0 +1,4 @@
+Good Tips for Small Data:
+-------------------------
+https://medium.com/rants-on-machine-learning/what-to-do-with-small-data-d253254d1a89
+
