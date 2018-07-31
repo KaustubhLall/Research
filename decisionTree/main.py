@@ -4,6 +4,10 @@ from io import *
 global root 
 root = node()
 
+# parse data file
+S, L = createDataMatrix('oat1oct1.csv') 
+print("Extracted Data from CSV, have %d features and %d points in the feature space" % (len(S[0]), len(S)))
+
 def build_tree(n, S, L):
     '''
     Recursively build a ID3Tree.
@@ -52,8 +56,6 @@ def build_tree(n, S, L):
         return n
     
 ###### begin tree
-S, L = createDataMatrix('oat1oct1.csv') 
-print("Extracted Data from CSV, have %d features and %d points in the feature space" % (len(S[0]), len(S)))
 
 print("Building tree...", end='\r')
 build_tree(root, S, L)
@@ -89,7 +91,7 @@ header("Testing Training Data... Done!")
 print("Training Accuracy: %3.4f" % (corr/i))
 
 
-VS, VL = parse_input('pa2test.txt')
+VS, VL = createDataMatrix('testdata')
 print("Testing Test Data...", end='\r')
 
 corr = 0
@@ -143,4 +145,5 @@ header('L3/1 : root->no->yes')
 print(root.nchild.ychild)
 header('L3/2 : root->no->no')
 print(root.nchild.nchild)
+while True: translateFeatures()
 header("Program finished execution.")

@@ -1,8 +1,10 @@
 from collections import Counter
+import sys
 from operator import itemgetter
 from math import log
 from random import choice
 
+featureMap = []
 def fsr(S, l, num=22):
     '''
     Given a dataset, return (f, t) which results in the maximum IG.
@@ -227,8 +229,7 @@ def replace(root, n, SV, SL):
     err = 0
     i = 0
 
-    S, L = parse_input('pa2validation.txt')
-    assert len(S[0]) == 22
+    S, L = createDataMatrix('validation')
     for v in S:
         pred = prediction(root, v)
         if pred != L[i]:
@@ -313,9 +314,18 @@ def createDataMatrix(fname, cols=[], ignoreHeader=True):
             else:
                 vector = [tokens[i] for i in cols]
                 dm.append(vector)
-        else: header = True
+        else: 
+            header = True
+            # 1: ignores the name of the drug, to include remove [1:]
+            global featureMap 
+            featureMap = line.split(',')[1:] 
+
     return dm, labels
 
-
-
-
+def translateFeatures():
+    x = int(input("Enter Feature Index to translate: ").strip())
+    try: 
+        ret = featureMap[x]
+        print("Found {} --> ".format(x) + ret)
+    except:
+        print("Cant find given featrure.")
