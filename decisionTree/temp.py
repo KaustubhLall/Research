@@ -11,3 +11,5 @@ def convertCharge(fname):
     g.write(s)
 
 convertCharge('oat1oct1.csv')
+convertCharge('validation')
+convertCharge('testdata')

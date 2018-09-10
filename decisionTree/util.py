@@ -1,35 +1,58 @@
 from collections import Counter
+# counter counts the number of times a certain label occurrs and stores it in a
+# dictionary-like format. Ex Counter([1,0,1,2,1,1]) --> {1:4, 0:1, 2:1}. Used to
+# form a random variable for the calculation of entropy of a label to find the
+# splitting rule.
 import sys
+# sys is used for in-out printing to terminal.
 from operator import itemgetter
+# itemgetter is used to sort
 from math import log
+# choice helps break ties at random.
 from random import choice
 
+
+# featuremap maps the names of features to their index. Used for tranlating
+# features.
 featureMap = []
+
+
 def fsr(S, l, num=22):
     '''
     Given a dataset, return (f, t) which results in the maximum IG.
+    :params:
+        S --> Dataset to split on.
+        l --> list of labels to split on.
+    :return_value:
+        feature, threshold --> tuple of feature index and the corresponding
+        threshold that provides the highest information gain.
     '''
     num = len(S[0])
     assert len(S[0]) == num
     features = list(range(num)) 
-    # calculate and store information gain for each feature as (f, t)
+    # calculate and store information gain for each feature as (f, t). Later we
+    # will compate all information gains and select the feature that corresponds
+    # to the highest information gain.
     gain = []
 
     for f in features:
-        # calculate the (maximum of) n-1 possible split values
+        # calculate the (maximum of) n-1 possible split values. Ex if the
+        # features are distributed over [1, 5, 7] split values are [3, 6.5].
         splits = []
-        # stores UNIQUE coordinates of points along the f-axis
+        # stores UNIQUE coordinates of points along the f-axis.
         feature_col = []
         # information gain array for this particular feature. Stores (f, t)
         gain_f = []
 
-        # extract feature column from data matrix
+        # extract feature column from data matrix. This will extract the values
+        # of a feature over all data samples.
         for i in range(len(S)):
             val = S[i][f]
             if val not in feature_col:
                 feature_col.append(val)
 
-        # sort the values of the features
+        # sort the values of the features. This is used to calculate the
+        # appropriate split values.
         feature_col = sorted(feature_col)
 
         # if all values of the feature are the same
@@ -80,9 +103,13 @@ def H(X):
 def HcondZ(t, v, l):
     '''
     Find the conditional entropy of X given Z.
-    H(X|Z) = sum over all z in Z: H(X|Z=z)
+    H(X|Z) = sum over all z in Z: H(X|Z=z).
+
+    For this use-case, we have two possible z's in Z: the yes and no branches of
+    the decision tree. 
     '''
-    # label = (0, 1)
+    # label = (0, 1). If our dataset has more labels, this would need to be
+    # changed. 
     y = [0, 0]
     n = [0, 0]
     for i in range(len(v)):
@@ -115,6 +142,9 @@ def HcondZ(t, v, l):
 
 def parse_input(s, n=22):
     '''
+    Deprecated. Not used, new files are parsed by the CreateDataMatrix. This
+    function may be useful for easy IO operations for debugging, however.
+
     Takes a given filename with n features and one label.
     Returns datamatrix, labels.
     '''
@@ -134,19 +164,32 @@ def parse_input(s, n=22):
 
 def isPure(v):
     '''
-    Check if there is only a unique label.
+    Check if there is only a unique label for a given node v.
     '''
     if type(v[0]) != type(0): print(v)
+    # if the set made by taking the labels associated with the node has only one
+    # element, it means all the labels in the node are the same, making it pure.
     return len(set(v)) == 1
 
 def major_label(l):
+    '''
+    Given a list of labels, return the major labels.
+
+    Throws a warning if there is no clear majority label, in such a case ties
+    are broken at random.
+
+    '''
+    # counter object builds a dictionary with the labels and their respective
+    # frequencies. 
     c = Counter(l)
 
+    # if the number of 0 labels is equal to the number of 1 labels, break tie at
+    # random and throw a warning.
     if c[0] == c[1]:
         # if majority labels occus uniformly
         print("Warning both labels are equiprobable (Called major_label)")
         return choice([0, 1])
-
+    # otherwise return the label that occurrs more often.
     return 0 if c[0] > c[1] else 1
 
 class node():
@@ -223,28 +266,66 @@ def header(s, len=120):
 
 def replace(root, n, SV, SL):
     '''
-    Classifies validation set on given node, 
+    This method finds test and validation errors for a given node before and
+    after it is pruned. It does not make any changes to the tree. In general if
+    the validation error after pruning would be less than without pruning, the
+    node will be pruned to compensate for overfitting.
+
+    :params:
+        root    --> the root node of the tree.
+        n       --> the node to check for pruning.
+        SV      --> data matrix to be used for calculating the test error.
+        SL      --> labels for the training dataset.
+    :return:
+        (pre-pruning validation error, post-pruning validation error,
+        pre-pruning test error, post-pruning test error)
+        
     '''
+    # pre error checks what the validation error of the given node is without
+    # pruning.
+    # err stores the error for the node after the tree is pruned. The node class
+    # handles pruning with the boolean variable node.pruned. If set to true the
+    # node is considered pruned, however the original tree is preserved in
+    # memory. By setting the node.ptuned to True the tree can effectively be
+    # "un-pruned" without extra computational work.
     pre_err = 0
     err = 0
     i = 0
 
+    # load the validation dataset.
     S, L = createDataMatrix('validation')
+
+    # v is a vector in S which represents a single datapoint as a list of its
+    # features from the validation dataset S.
     for v in S:
+        # check if the prediction made by the tree matches the actual label of
+        # the datapoint. If it does not, increment the error counter, and
+        # increment i regardless of prediction correctness to keep track of
+        # total points covered in error calculation.
         pred = prediction(root, v)
         if pred != L[i]:
             err += 1
         i += 1
+    # calculate the erro pre-pruning of the tree.
     pre_err = err/i
 
+    # the error after the node is pruned. The same procedure used as above.
     err = 0
     i = 0
+    # set the node to be temporarily pruned. This methods does not make any
+    # permanent changes to the structure of the tree. It just reports errors.
     n.pruned = True
     for v in S:
+        # check if the prediction made by the tree matches the actual label of
+        # the datapoint. If it does not, increment the error counter, and
+        # increment i regardless of prediction correctness to keep track of
+        # total points covered in error calculation.
         pred = prediction(root, v)
         if pred != L[i]:
             err += 1
         i += 1
+
+    # un-prune the tree to preserve tree structure.
     n.pruned = False
     post_err = err/i
 
@@ -253,10 +334,15 @@ def replace(root, n, SV, SL):
     i = 0
 
     for v in SV:
+        # check if the prediction made by the tree matches the actual label of
+        # the datapoint. If it does not, increment the error counter, and
+        # increment i regardless of prediction correctness to keep track of
+        # total points covered in error calculation.
         pred = prediction(root, v)
         if pred != SL[i]:
             err += 1
         i += 1
+    # t-err0 translates to test-error before pruning.
     t_err0 = err/i
 
 
@@ -266,13 +352,21 @@ def replace(root, n, SV, SL):
     n.pruned = True
 
     for v in SV:
+        # check if the prediction made by the tree matches the actual label of
+        # the datapoint. If it does not, increment the error counter, and
+        # increment i regardless of prediction correctness to keep track of
+        # total points covered in error calculation.
         pred = prediction(root, v)
         if pred != SL[i]:
             err += 1
         i += 1
+    # t_err1 represents test error after pruning.
     t_err1 = err/ i
 
+    # un-prune the tree to preserve tree structure.
     n.pruned = False
+
+    # return all the errors as a tuple of 4.
     return pre_err, post_err, t_err0, t_err1
 
 def createDataMatrix(fname, cols=[], ignoreHeader=True):
@@ -280,14 +374,21 @@ def createDataMatrix(fname, cols=[], ignoreHeader=True):
     Returns a data matrix from a .csv file.
     :params:
         fname   --> name/path of file to open.
-        cols    --> which columns to scrape. Default is all.
+        cols    --> which columns to scrape. Default is all. This is useful for
+        feature selection. 
     :return:
         data matrix, labels as a tuple
     '''
     f = open(fname)
+    # data matrix. Each row in the matrix is a datapoint represented by its
+    # features.
     dm = []
+    # list of the labels corresponding to the data matrix.
     labels = []
+    # header will remove the very first row and store it to translate the
+    # features from their indices.
     header = False
+    # parse the csv line-by-line.
     for line in  f:
         if header:
             tokens = line.split(',')[8:]
@@ -304,7 +405,6 @@ def createDataMatrix(fname, cols=[], ignoreHeader=True):
 
             # clean up the tokens
             tokens = [float(x.strip()) for x in tokens[:-1]]
-
 
             # extract the vector into a data matrix
             # check if any columns were specified
