@@ -391,14 +391,15 @@ def createDataMatrix(fname, cols=[], ignoreHeader=True):
     # parse the csv line-by-line.
     for line in  f:
         if header:
-            tokens = line.split(',')[8:]
+            # TODO add [8:] after done
+            tokens = line.split(',')
 
             # extract the label
             # 0 - oat1
             # 1 - oct1
             label = tokens[-1].strip().lower()
-            if label == 'oat1': labels.append(0)
-            elif label == '1-oct': labels.append(1)
+            if label == 'OAT1': labels.append(0)
+            elif label == 'OCT1': labels.append(1)
             else: 
                 print(label)
                 raise AssertionError
