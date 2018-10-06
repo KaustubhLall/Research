@@ -1,4 +1,4 @@
 git pull
-git add *
-git commit -am 'autosync'
+git add * 
+git commit -am "Autosync"
 git push
