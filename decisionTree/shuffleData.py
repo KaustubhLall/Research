@@ -48,14 +48,14 @@ def splitData(datafile):
     counter = 0
     for i in range(designLen):
         f.write(lines[i] + '\n')
-    counter = designLen - 1
+    counter = designLen
 
     f = open(testDataName, 'w')
     for i in range(counter, counter + testLen):
         f.write(lines[i] + '\n')
 
     f = open(validationDataName, 'w')
-    counter += testLen - 1
+    counter += testLen 
     for i in range(counter, counter + validationLen):
         f.write(lines[i] + '\n')
 

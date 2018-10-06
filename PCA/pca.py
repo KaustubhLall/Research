@@ -46,7 +46,7 @@ def PCA(x, y, standardize=False):
     # extract P* (sorted eigenvectors)
     Pprime = [x[1] for x in DP]
     return np.matmul(z, Pprime)
-    
+
 x = [
         [7, 4, 3],
         [4, 1, 8],
