@@ -8,6 +8,7 @@ def subsetDataContainer(source, cols):
     :param cols: the cols we want to pull.
     :return: new data container with exactly the cols you want.
     '''
+    cols = sorted(cols, reverse=True)
     newcontainer = DataContainer(False)
     newcontainer.numcols = len(cols)
     newcontainer.numrows = source.numrows
@@ -20,13 +21,14 @@ def subsetDataContainer(source, cols):
         if c in source.categoricalMap:
             newcontainer.categoricalMap[i] = source.categoricalMap[c]
 
+    print(newcontainer.header, newcontainer.dtypes)
     # add rows to datamatrix
     newcontainer.dataMatrix = []
 
     for row in source.dataMatrix:
         newrow = [row[i] for i in cols]
         newcontainer.dataMatrix.append(newrow)
-    print(newcontainer)
+
     return newcontainer
 
 def splitDataset(splits=[80, 10, 10], seed=1):
@@ -39,6 +41,7 @@ def splitDataset(splits=[80, 10, 10], seed=1):
     :param seed: numpy seed to use for shuffling the dataset.
     :return: None. Writes to disk.
     '''
+    pass
 
 
 class DataContainer():
@@ -109,13 +112,14 @@ class DataContainer():
         :param col: index of column to drop.
         :return: None.
         '''
+        assert False
         assert self.numcols >= 1
         # things to keep in mind:
         # categorical data may have corupted entries in self.categoricalMap
         # make sure you update the header
         # make sure you update numcols
         # 1. delete the column
-        for i in range(len(self.dataMatrix)):
+        for i in range(self.numrows):
             self.dataMatrix[i] = self.dataMatrix[i][:col] + self.dataMatrix[col+1:]
 
         # 2. Update the header
@@ -162,9 +166,10 @@ class DataContainer():
         :param col: index of column.
         :return: 'float' or 'categorical'
         '''
+
         c = self.getcol(col)[1]
         try:
-            float(c)
+            float(c[0])
         except:
             self.dtypes[col] = 'categorical'
             return 'categorical'
@@ -243,3 +248,12 @@ class DataContainer():
         mapping = self.categoricalMap[col]
         return list(mapping.keys())[list(mapping.values()).index(entry)]
 
+dc = DataContainer('test.csv')
+dc = DataContainer('train.csv')
+print(dc)
+#print(dc.getcol(3))
+#print(dc.getcol(2))
+#print(dc.getcol(0))
+#sub = subsetDataContainer(dc, [23])
+#sub.dropcol(0)
+#print([x[0] for x in sub.dataMatrix])

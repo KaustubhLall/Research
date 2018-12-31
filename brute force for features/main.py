@@ -1,3 +1,5 @@
+# index where the class is
+classind = 2
 '''
 This file will have a method to generate all possible n C k features of a given dataset.
 The dataset in question has to be pre-processed and some columns may be dropped.
@@ -34,14 +36,16 @@ def preprocess(target, fname='oat1oat3preprocessed.csv'):
 
 def runall(testname, trainname, results, k=5):
     # load test and training "main" datacontainers
-    testx = DataContainer(testname, [5, 4, 1, 0])
-    trainx = DataContainer(trainname, [5, 4, 1, 0])
+    testx = DataContainer(testname)
+    trainx = DataContainer(trainname)
 
     # extract labels and drop the columns
-    testy = testx.getcol(0)[1]
-    testx.dropcol(0)
-    trainy = trainx.getcol(0)[1]
-    trainx.dropcol(0)
+    testy = [x[0] for x in subsetDataContainer(testx, [classind]).dataMatrix]
+    trainy = [x[0] for x in subsetDataContainer(trainx, [classind]).dataMatrix]
+
+    # clean columns we dont need
+    testx = subsetDataContainer(testx, [3] + list(range(5, testx.numcols)))
+    trainx = subsetDataContainer(trainx, [3] + list(range(5, trainx.numcols)))
 
     # generate all feature sequences
     print('generating sequences...')
@@ -60,7 +64,6 @@ def runall(testname, trainname, results, k=5):
         print("Subsetting from main datacontainer")
         subtrainx = subsetDataContainer(trainx, pattern)
         subtestx = subsetDataContainer(testx, pattern)
-        print(subtrainx)
         
         subtrainx = subtrainx.dataMatrix
         subtestx = subtestx.dataMatrix
