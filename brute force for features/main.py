@@ -34,13 +34,8 @@ def preprocess(target, fname='oat1oat3preprocessed.csv'):
 
 def runall(testname, trainname, results, k=5):
     # load test and training "main" datacontainers
-    testx = DataContainer(testname)
-    trainx = DataContainer(trainname)
-
-    # drop unneeded cols
-    for c in [5, 4, 1, 0]:
-        testx.dropcol(c)
-        trainx.dropcol(c)
+    testx = DataContainer(testname, [5, 4, 1, 0])
+    trainx = DataContainer(trainname, [5, 4, 1, 0])
 
     # extract labels and drop the columns
     testy = testx.getcol(0)[1]

@@ -103,7 +103,7 @@ class DataContainer():
         for i in range(self.numcols):
             self.mapcol(i)
         # clean up the cols to drop
-        for e in bannedcols:
+        for e in sorted(bannedcols, reverse=True):
             self.dropcol(e)
 
     def dropcol(self, col):
