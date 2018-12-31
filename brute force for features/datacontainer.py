@@ -26,7 +26,7 @@ def subsetDataContainer(source, cols):
     for row in source.dataMatrix:
         newrow = [row[i] for i in cols]
         newcontainer.dataMatrix.append(newrow)
-    print(newcontainer.numrows)
+    print(newcontainer)
     return newcontainer
 
 def splitDataset(splits=[80, 10, 10], seed=1):
@@ -39,9 +39,6 @@ def splitDataset(splits=[80, 10, 10], seed=1):
     :param seed: numpy seed to use for shuffling the dataset.
     :return: None. Writes to disk.
     '''
-
-
-
 
 
 class DataContainer():
