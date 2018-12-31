@@ -14,7 +14,7 @@ def shuffleFile(curfile, newfile):
     random.shuffle(lines)
 
     f2 = open(newfile, 'w')
-    string = '\n'.join(lines)
+    string = ''.join(lines)
     f2.write(string)
     f2.close()
     print("successfulyl shuffled the data points in %s and wrote to %s" % (curfile, newfile))
@@ -30,13 +30,12 @@ def splitData(datafile):
     testDataName = 'testdata'
     validationDataName = 'validation'
     # design matrix, test matrix, validation matrix
-    splits = [80, 10, 10]
+    splits = [60, 20, 20]
 
     lines = []
 
     f = open(datafile)
-    for line in f:
-        lines.append(line)
+    for line in f: lines.append(line)
 
     total = len(lines)
 
@@ -46,22 +45,19 @@ def splitData(datafile):
 
     f = open(designMatrixName, 'w')
     counter = 0
-    for i in range(designLen):
-        f.write(lines[i] + '\n')
+    for i in range(designLen): f.write(lines[i])
     counter = designLen
 
     f = open(testDataName, 'w')
-    for i in range(counter, counter + testLen):
-        f.write(lines[i] + '\n')
+    for i in range(counter, counter + testLen): f.write(lines[i])
 
     f = open(validationDataName, 'w')
     counter += testLen 
-    for i in range(counter, counter + validationLen):
-        f.write(lines[i] + '\n')
+    for i in range(counter, counter + validationLen): f.write(lines[i])
 
     print('Successfully divided %s into %s %s %s' % (datafile, designMatrixName, testDataName, validationDataName))
         
-shuffleFile('newfile', 'new')
+shuffleFile('newdata.csv', 'new')
 splitData('new')
     
 

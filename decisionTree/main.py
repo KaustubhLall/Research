@@ -5,7 +5,7 @@ global root
 root = node()
 
 # parse data file
-S, L = createDataMatrix('newfile') 
+S, L = createDataMatrix('datafile') 
 print("Extracted Data from CSV, have %d features and %d points in the feature space" % (len(S[0]), len(S)))
 
 def build_tree(n, S, L):
