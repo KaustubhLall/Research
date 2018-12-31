@@ -57,11 +57,11 @@ def runall(testname, trainname, results, k=5):
 
     prog = 0
     bestDT = 0, ''
-    bestRWF = 0, ''
+    bestRFW = 0, ''
     # run the sequences via a decision tree and then repeat for RFW
-    print("starting test...")
+    print("starting test..., %d choose %d sequences" %(k, trainx.numcols))
+    #f.write(','.join(testx.header))
     for pattern in seq:
-        print("Subsetting from main datacontainer")
         subtrainx = subsetDataContainer(trainx, pattern)
         subtestx = subsetDataContainer(testx, pattern)
         
@@ -69,24 +69,38 @@ def runall(testname, trainname, results, k=5):
         subtestx = subtestx.dataMatrix
         
         resDT = testDecisionTree(subtrainx, trainy, subtestx, testy, pattern)
-        resRWF = testRWF(subtrainx, trainy, subtestx, testy, pattern)
+        resRFW = testRFW(subtrainx, trainy, subtestx, testy, pattern)
 
         # do auc and roc comparisons here
 
         if resDT[0] > bestDT[0]:
             bestDT = resDT
 
-        if resRWF[0] > bestRWF[0]:
-            bestRWF = resRWF
+        if resRFW[0] > bestRFW[0]:
+            bestRFW = resRFW
 
-        # write test results to file
-        f.write("%s \t %s" % (resDT, resRWF))
         prog += 1
-        print("Classified %d/%d\n current bests: %s \t %s" % (prog, totalseq, bestDT, bestRWF), end='\r')
+        featuresDT = []
+        featuresRFW = []
+        for i in range(0, len(resDT[1])- 1, 2):
+            featuresDT.append(trainx.header[int(resDT[1][i:i+2])])
+            featuresRFW.append(trainx.header[int(resRFW[1][i:i+2])])
+        
+        # write test results to file
+        f.write("%s\t%s\t%s\n" % (resDT[0], resRFW[0], ','.join(featuresDT)))
+        
+        print("Classified %d/%d %03.02f%% \t current bests: %02.02f, %02.02f" % (prog, totalseq, prog/totalseq * 1e2, bestDT[0], bestRFW[0]), end='\r')
 
     f.close()
     print("Finished!")
 
 
-runall('test.csv','train.csv','results', 5)
 
+def numfeatures(ftest, ftrain, f=[6, 7, 8, 9]):
+    
+    for e in f:
+        print("Running %s" % e)    
+        runall(ftest, ftrain, 'results' + str(e), e)
+        
+numfeatures('test.csv','train.csv')
+#runall('test.csv', 'train.csv', 'results9', 9)

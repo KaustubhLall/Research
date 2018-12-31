@@ -17,19 +17,16 @@ def testDecisionTree(trainx, trainy, testx, testy, cols):
     :return: error, cols as a string, auc, roc
     '''
 
-    print('fitting classifier DT')
     # fit tree
     clf = tree.DecisionTreeClassifier()
     clf.fit(trainx, trainy)
-    print('done fitting!')
-
+   
     # error check
     corr = 0
     total = 0
 
     pred = clf.predict(testx)
-    print(list(pred))
-
+   
     for p in pred:
         if p == testy[total]: corr += 1
         total += 1
@@ -37,7 +34,7 @@ def testDecisionTree(trainx, trainy, testx, testy, cols):
     # do auc and roc here
     auc = roc_auc_score(testy, pred)
     #roc = roc_curve(testy, pred)
-    return corr/total, ''.join(["%02d" % x for x in cols]), auc#, roc
+    return corr/total, ''.join(["%02d" % x for x in cols])
 
 
 def testRFW(trainx, trainy, testx, testy, cols):
@@ -53,22 +50,19 @@ def testRFW(trainx, trainy, testx, testy, cols):
     :return: error, cols as a string
     '''
 
-    print('fitting classifier RWF')
     # train classifier
     clf = RandomForestClassifier(n_estimators=100)
     clf.fit(trainx, trainy)
-    print('done fitting!')
     # error check
     corr = 0
     total = 0
     pred = list(clf.predict(testx))
-    print(pred)
     for p in pred:
         if p == testy[total]: corr += 1
         total += 1
     auc = roc_auc_score(testy, pred)
     #roc = roc_curve(testy, pred)
-    return corr/total, ''.join(["%02d" % x for x in cols]), auc#, roc
+    return corr/total, ''.join(["%02d" % x for x in cols])
 
 
 

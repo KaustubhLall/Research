@@ -21,7 +21,6 @@ def subsetDataContainer(source, cols):
         if c in source.categoricalMap:
             newcontainer.categoricalMap[i] = source.categoricalMap[c]
 
-    print(newcontainer.header, newcontainer.dtypes)
     # add rows to datamatrix
     newcontainer.dataMatrix = []
 
@@ -45,12 +44,12 @@ def splitDataset(splits=[80, 10, 10], seed=1):
 
 
 class DataContainer():
-    header = []
-    numrows = 0
-    numcols = 0
-    dataMatrix = []
-    dtypes = []
-    categoricalMap = {}
+    #header = []
+    #numrows = 0
+    #numcols = 0
+    #dataMatrix = []
+    #dtypes = []
+    #categoricalMap = {}
 
     def __repr__(self):
         '''
@@ -77,6 +76,14 @@ class DataContainer():
         :param bannedcols: index of columns to drop.
         :return: the initialized datacontainer.
         '''
+        
+        self.header = []
+        self.numrows = 0
+        self.numcols = 0
+        self.dataMatrix = []
+        self.dtypes = []
+        self.categoricalMap = {}
+        
         # this is a special case where we manually create a new data container
         if fname == False:
             return
@@ -249,8 +256,8 @@ class DataContainer():
         return list(mapping.keys())[list(mapping.values()).index(entry)]
 
 dc = DataContainer('test.csv')
-dc = DataContainer('train.csv')
-print(dc)
+dc1 = DataContainer('train.csv')
+#print(dc)
 #print(dc.getcol(3))
 #print(dc.getcol(2))
 #print(dc.getcol(0))
