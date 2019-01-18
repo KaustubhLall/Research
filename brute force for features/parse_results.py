@@ -28,12 +28,12 @@ def find_k_best(fname, k=20):
                 ])
     
     # write to csv file
-
+    # 10 fold and leave one out analysis on chsoen sample points TODO
     f = open(fname + 'parsed.csv', 'w', newline='')
     writer = csv.writer(f, delimiter=',', quotechar='"', quoting = csv.QUOTE_MINIMAL)
     writer.writerows(arr)
 
-find_k_best('results6', 100)
+find_k_best('results7', 100)
 
 def find_stats(arr):
     pass 

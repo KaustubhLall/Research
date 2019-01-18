@@ -44,8 +44,8 @@ def runall(testname, trainname, results, k=5):
     trainy = [x[0] for x in subsetDataContainer(trainx, [classind]).dataMatrix]
 
     # clean columns we dont need
-    testx = subsetDataContainer(testx, [3] + list(range(5, testx.numcols)))
-    trainx = subsetDataContainer(trainx, [3] + list(range(5, trainx.numcols)))
+    testx = subsetDataContainer(testx, list(range(6, testx.numcols)))
+    trainx = subsetDataContainer(trainx, list(range(6, trainx.numcols)))
 
     # generate all feature sequences
     print('generating sequences...')
