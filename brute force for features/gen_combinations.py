@@ -10,11 +10,21 @@ def generateSequences(n, k):
     '''
     return list(choose_iter(list(range(n)), k))
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/master
 def choose_iter(elements, length):
     for i in range(len(elements)):
         if length == 1:
             yield (elements[i],)
         else:
+<<<<<<< HEAD
             for next in choose_iter(elements[i + 1:len(elements)], length - 1):
                 yield (elements[i],) + next
+=======
+            for next in choose_iter(elements[i+1:len(elements)], length-1):
+                yield (elements[i],) + next
+
+
+>>>>>>> origin/master
