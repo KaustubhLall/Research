@@ -1,5 +1,6 @@
 import datetime
 from time import time
+
 # index where the class is
 classind = 2
 '''
@@ -27,6 +28,14 @@ from sklearn.metrics import roc_auc_score
 
 
 def preprocess(target, fname='oat1oat3preprocessed.csv'):
+    """
+    Pre-processing function, specifically for our dataset. Currently NOT used, because dropcol() functionality is not
+    correctly working.
+    :param target: target csv to write output to.
+    :param fname: source csv file to preprocess.
+    :return: None. All operations done inside fn call.
+    """
+
     df = DataContainer(fname)
 
     for e in [5, 4, 1, 0]:
@@ -39,9 +48,32 @@ def preprocess(target, fname='oat1oat3preprocessed.csv'):
 
 
 def runall(testname, trainname, results, k=5):
+    """
+    Function to run all classifiers (decision tree, random forest walk, naive bayes, logistic regression, k nearest
+    neighbor) through the test data to calculate auc scores.
+
+    Takes in a test file and a training file, and writes to the results file. k specifies the number of features to
+    select.
+
+    :param testname: name of the file that contains the test data.
+    :param trainname: name of the file that contains the training data.
+    :param results: name of the file to write results to.
+    :param k: the number of features to target selecting.
+    :return: No return value. Reads and writes from disk and prints to stdout.
+    """
+
+    '''
+    Pre-processing steps: 
+    1. load the data from the files
+    2. extract the column that contains the labels.
+    3. remove the first 6 columns as they are metadata + labels.
+    4. construct a list with all feature combinations possible.
+    5. 
+    '''
     # load test and training "main" datacontainers
     testx = DataContainer(testname)
     trainx = DataContainer(trainname)
+
 
     # extract labels and drop the columns
     testy = [x[0] for x in subsetDataContainer(testx, [classind]).dataMatrix]
@@ -66,7 +98,7 @@ def runall(testname, trainname, results, k=5):
     bestNB = 0, ''
     bestKNN = 0, ''
 
-    # run the sequences via a decision tree and then repeat for RFW
+    # run the sequences via a decision tree and then repeat for RFW and other classifiers
     print("starting test..., %d choose %d sequences" % (k, trainx.numcols))
     # f.write(','.join(testx.header))
     timeStart = time()
@@ -128,9 +160,20 @@ def runall(testname, trainname, results, k=5):
 
 
 def enumerate_over_features(ftest, ftrain, f=[2, 5, 6, 7, 8, 9]):
+    """
+    This function takes in a file each for training and test data, and a list of features to target for classifiers
+    (decision tree, random forest walk, naive bayes, logistic regression, k nearest neighbor) and runs them using k many
+    features as specified in the list f.
+
+    :param ftest: name of file with test data.
+    :param ftrain: name of file with training data.
+    :param f: list of features to use.
+    :return: None, writes to disk and also prints to stdout.
+    """
     for e in f:
         print("Running %s" % e)
         runall(ftest, ftrain, 'results' + str(e), e)
 
 
+###### Call function over here to run the file
 enumerate_over_features('test.csv', 'train.csv')

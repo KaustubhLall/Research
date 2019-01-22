@@ -1,6 +1,38 @@
 import csv
 from copy import deepcopy
 
+'''
+This file defines a data container object. The purpose is to be able to extract certain columns from the dataset by
+passing in a list of indices to the column. The datastructure supports the following operations:
+
+
+1. Visualization: You can print the entire dataset by simply passing the object into a print function.
+It should generate a table.
+
+2. Initialization: To initialize a DataContainer, simply call it with a single argument - the csv file that contains your data.
+The DataContainer will do automatic tagging of float/int data types with categorical data, however it is not designed to 
+Do a mix of both. Having entries like "4-fold" etc may throw off the auto type inference, and is highly discouraged
+because is it not a guarantee that error checking will catch such discrepancies.
+Ex dc = DataContainer('myfile.csv')
+
+3. Removing Columns: Once a data container is made, columns MAY NOT be removed. This feature is implemented by the 
+self.dropcol method, However, the implementation is buggy. It will permanently throw an assertion error.
+
+4. Fetching Columns: Columns may, however be fetched using the getcol(index) method. 
+Doing so will return a (column header, column contents) tuple, the latter of which is simply a list.
+To get a column by its header, simply do dc.getcol(dc.header.index('name of column header')).
+
+5. File I/O : You can write the contents of a DataContainer object to file using the dc.writeCSV('destinationfile.csv')
+method. 
+
+6. Subsetting : If you want to get a copy of the data container with only some (a subset of its) columns, you can use
+the subsetDataContainer(source, cols), which returns a copy of the source DataContainer with only the columns specified 
+by the parameter cols =[indices of cols].
+
+
+
+'''
+
 
 def subsetDataContainer(source, cols):
     '''
@@ -38,6 +70,8 @@ def splitDataset(splits=[80, 10, 10], seed=1):
     Once we have our standard test training and validation splits, we will use the files to create one data container
     for each, and then subset all possible combinations of features.
 
+    This feature is a TODO, will not necessarily be implemented.
+
     :param splits: splits to use for training, test and validation.
     :param seed: numpy seed to use for shuffling the dataset.
     :return: None. Writes to disk.
@@ -74,7 +108,7 @@ class DataContainer():
         '''
         Initializes the datacontainer from a given csv.
         :param fname: filename to initialize from.
-        :param bannedcols: index of columns to drop.
+        :param bannedcols: index of columns to drop. TODO this feature is not currently supported.
         :return: the initialized datacontainer.
         '''
 
@@ -167,6 +201,35 @@ class DataContainer():
         col = [x[col] for x in self.dataMatrix]
         return header, col
 
+    def writeCSV(self, fname):
+        '''
+        Write the DataContainer object to a csv file.
+        :param fname: name of the target file.
+        :return: None.
+        '''
+        f = open(fname, mode='w', newline='')
+
+        writer = csv.writer(f, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+        # first write the header, then every entry in the data matrix
+        writer.writerow(self.header)
+
+        # make a copy of a data matrix
+        dm = deepcopy(self.dataMatrix)
+
+        # need to reverse numerical categorical data to original names.
+        for i in range(len(self.dtypes)):
+            dtype = self.dtypes[i]
+            if dtype == 'categorical':
+                # here we need to change the values in our copy of the datamatrix
+                for j in range(len(dm)):
+                    dm[j][i] = self.findkey(self.dataMatrix[j][i], j, i)
+        for r in dm:
+            writer.writerow(r)
+
+        print("Successfully wrote datacontainer to ", fname)
+
+
     #################################################################################
     #                               HELPER FUNCTIONS                                #
     #################################################################################
@@ -220,34 +283,6 @@ class DataContainer():
 
             # remember the encoding into categorical map
             self.categoricalMap[col] = vals
-
-    def writeCSV(self, fname):
-        '''
-        Write the DataContainer object to a csv file.
-        :param fname: name of the target file.
-        :return: None.
-        '''
-        f = open(fname, mode='w', newline='')
-
-        writer = csv.writer(f, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-
-        # first write the header, then every entry in the data matrix
-        writer.writerow(self.header)
-
-        # make a copy of a data matrix
-        dm = deepcopy(self.dataMatrix)
-
-        # need to reverse numerical categorical data to original names.
-        for i in range(len(self.dtypes)):
-            dtype = self.dtypes[i]
-            if dtype == 'categorical':
-                # here we need to change the values in our copy of the datamatrix
-                for j in range(len(dm)):
-                    dm[j][i] = self.findkey(self.dataMatrix[j][i], j, i)
-        for r in dm:
-            writer.writerow(r)
-
-        print("Successfully wrote datacontainer to ", fname)
 
     def findkey(self, entry, row, col):
         '''
