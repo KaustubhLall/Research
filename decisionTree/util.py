@@ -1,4 +1,6 @@
 from collections import Counter
+class1label = 'oat1'
+class2label = 'oat3'
 # counter counts the number of times a certain label occurrs and stores it in a
 # dictionary-like format. Ex Counter([1,0,1,2,1,1]) --> {1:4, 0:1, 2:1}. Used to
 # form a random variable for the calculation of entropy of a label to find the
@@ -391,14 +393,15 @@ def createDataMatrix(fname, cols=[], ignoreHeader=True):
     # parse the csv line-by-line.
     for line in  f:
         if header:
-            tokens = line.split(',')[8:]
+            # TODO add [8:] after done
+            tokens = line.split(',')
 
             # extract the label
             # 0 - oat1
             # 1 - oct1
             label = tokens[-1].strip().lower()
-            if label == 'oat1': labels.append(0)
-            elif label == '1-oct': labels.append(1)
+            if label == class1label: labels.append(0)
+            elif label == class2label: labels.append(1)
             else: 
                 print(label)
                 raise AssertionError
