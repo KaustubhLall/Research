@@ -1,3 +1,5 @@
+import datetime
+from time import time
 # index where the class is
 classind = 2
 '''
@@ -21,7 +23,8 @@ NOTES:
 from classifier import *
 from datacontainer import *
 from gen_combinations import *
-from sklearn.metrics import  roc_auc_score
+from sklearn.metrics import roc_auc_score
+
 
 def preprocess(target, fname='oat1oat3preprocessed.csv'):
     df = DataContainer(fname)
@@ -33,6 +36,7 @@ def preprocess(target, fname='oat1oat3preprocessed.csv'):
     df.dropcol(0)
 
     df.writeCSV(target)
+
 
 def runall(testname, trainname, results, k=5):
     # load test and training "main" datacontainers
@@ -58,18 +62,26 @@ def runall(testname, trainname, results, k=5):
     prog = 0
     bestDT = 0, ''
     bestRFW = 0, ''
+    bestLR = 0, ''
+    bestNB = 0, ''
+    bestKNN = 0, ''
+
     # run the sequences via a decision tree and then repeat for RFW
-    print("starting test..., %d choose %d sequences" %(k, trainx.numcols))
-    #f.write(','.join(testx.header))
+    print("starting test..., %d choose %d sequences" % (k, trainx.numcols))
+    # f.write(','.join(testx.header))
+    timeStart = time()
     for pattern in seq:
         subtrainx = subsetDataContainer(trainx, pattern)
         subtestx = subsetDataContainer(testx, pattern)
-        
+
         subtrainx = subtrainx.dataMatrix
         subtestx = subtestx.dataMatrix
-        
+
         resDT = testDecisionTree(subtrainx, trainy, subtestx, testy, pattern)
         resRFW = testRFW(subtrainx, trainy, subtestx, testy, pattern)
+        resLR = testLogisticRegressor(subtrainx, trainy, subtestx, testy, pattern)
+        resKNN = testKNN(subtrainx, trainy, subtestx, testy, pattern)
+        resNB = testNaiveBayes(subtrainx, trainy, subtestx, testy, pattern)
 
         # do auc and roc comparisons here
 
@@ -79,28 +91,46 @@ def runall(testname, trainname, results, k=5):
         if resRFW[0] > bestRFW[0]:
             bestRFW = resRFW
 
+        if resKNN[0] > bestKNN[0]:
+            bestKNN = resKNN
+
+        if resLR[0] > bestLR[0]:
+            bestLR = resLR
+
+        if resNB[0] > bestNB[0]:
+            bestNB = resNB
+
         prog += 1
         featuresDT = []
         featuresRFW = []
-        for i in range(0, len(resDT[1])- 1, 2):
-            featuresDT.append(trainx.header[int(resDT[1][i:i+2])])
-            featuresRFW.append(trainx.header[int(resRFW[1][i:i+2])])
-        
+        featuresNB = []
+        featuresLR = []
+        featuresKNN = []
+
+        for i in range(0, len(resDT[1]) - 1, 2):
+            featuresDT.append(trainx.header[int(resDT[1][i:i + 2])])
+            featuresRFW.append(trainx.header[int(resRFW[1][i:i + 2])])
+            featuresNB.append(trainx.header[int(resNB[1][i:i + 2])])
+            featuresLR.append(trainx.header[int(resLR[1][i:i + 2])])
+            featuresKNN.append(trainx.header[int(resKNN[1][i:i + 2])])
+
         # write test results to file
-        f.write("%s\t%s\t%s\n" % (resDT[0], resRFW[0], ','.join(featuresDT)))
-        
-        print("Classified %d/%d %03.02f%% \t current bests: %02.02f, %02.02f" % (prog, totalseq, prog/totalseq * 1e2, bestDT[0], bestRFW[0]), end='\r')
+        f.write("%s\t%s\t%s\t%s\t%s\t%s\n" % (resDT[0], resRFW[0], resNB[0], resLR[0], resKNN[0], ','.join(featuresDT)))
+        curtime = time()
+        predtime = ((curtime - timeStart) * (totalseq - prog) / prog)
+        predtime = str(datetime.timedelta(seconds=predtime)).split('.')[0]
+        print("Classified %d/%d %03.02f%% \t current bests: %02.02f, %02.02f, %02.02f, %02.02f, %02.02f, ETA: %s" % (
+            prog, totalseq, prog / totalseq * 1e2, bestDT[0], bestRFW[0], bestNB[0], bestKNN[0], bestLR[0], predtime),
+              end='\r')
 
     f.close()
     print("Finished!")
 
 
-
-def numfeatures(ftest, ftrain, f=[6, 7, 8, 9]):
-    
+def enumerate_over_features(ftest, ftrain, f=[2, 5, 6, 7, 8, 9]):
     for e in f:
-        print("Running %s" % e)    
+        print("Running %s" % e)
         runall(ftest, ftrain, 'results' + str(e), e)
-        
-numfeatures('test.csv','train.csv')
-#runall('test.csv', 'train.csv', 'results9', 9)
+
+
+enumerate_over_features('test.csv', 'train.csv')

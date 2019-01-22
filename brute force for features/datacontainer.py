@@ -1,6 +1,7 @@
 import csv
 from copy import deepcopy
 
+
 def subsetDataContainer(source, cols):
     '''
     Takes columns from an existing Data Container object and makes a new one with the new cols.
@@ -30,6 +31,7 @@ def subsetDataContainer(source, cols):
 
     return newcontainer
 
+
 def splitDataset(splits=[80, 10, 10], seed=1):
     '''
     Parses a csv file, creates a training, test and validation set. Ensures training set is balanced in classes.
@@ -44,12 +46,12 @@ def splitDataset(splits=[80, 10, 10], seed=1):
 
 
 class DataContainer():
-    #header = []
-    #numrows = 0
-    #numcols = 0
-    #dataMatrix = []
-    #dtypes = []
-    #categoricalMap = {}
+    # header = []
+    # numrows = 0
+    # numcols = 0
+    # dataMatrix = []
+    # dtypes = []
+    # categoricalMap = {}
 
     def __repr__(self):
         '''
@@ -65,7 +67,6 @@ class DataContainer():
             row = self.dataMatrix[i]
             s += '|' + '|'.join([('%s' % x).center(cellwidth) for x in row]) + '|\n'
 
-
         # :-1 ensures last newline is not printed
         return s[:-1]
 
@@ -76,14 +77,14 @@ class DataContainer():
         :param bannedcols: index of columns to drop.
         :return: the initialized datacontainer.
         '''
-        
+
         self.header = []
         self.numrows = 0
         self.numcols = 0
         self.dataMatrix = []
         self.dtypes = []
         self.categoricalMap = {}
-        
+
         # this is a special case where we manually create a new data container
         if fname == False:
             return
@@ -119,6 +120,8 @@ class DataContainer():
         :param col: index of column to drop.
         :return: None.
         '''
+        # NOTE CURRENTLY A BUG IN THIS METHOD - DO NOT USE OR PROGRAM WILL NOT TERMINATE, see
+        # @subsetDataContainer method
         assert False
         assert self.numcols >= 1
         # things to keep in mind:
@@ -127,10 +130,10 @@ class DataContainer():
         # make sure you update numcols
         # 1. delete the column
         for i in range(self.numrows):
-            self.dataMatrix[i] = self.dataMatrix[i][:col] + self.dataMatrix[col+1:]
+            self.dataMatrix[i] = self.dataMatrix[i][:col] + self.dataMatrix[col + 1:]
 
         # 2. Update the header
-        self.header = self.header[:col] + self.header[col+1:]
+        self.header = self.header[:col] + self.header[col + 1:]
 
         # 3. update numcols
         self.numcols -= 1
@@ -147,7 +150,7 @@ class DataContainer():
         self.categoricalMap = newMapping
 
         # 5 update dtypes col
-        self.dtypes = self.dtypes[:col] + self.dtypes[col+1:]
+        self.dtypes = self.dtypes[:col] + self.dtypes[col + 1:]
 
     def getcol(self, col):
         '''
@@ -195,8 +198,10 @@ class DataContainer():
         # this is how we handle simple numbers
         if dtype == 'float':
             for i in range(len(self.dataMatrix)):
-                try: self.dataMatrix[i][col] = float(self.dataMatrix[i][col])
-                except: print("Wrong value inferred for ", self.dataMatrix[i][col], self.dtypes[col])
+                try:
+                    self.dataMatrix[i][col] = float(self.dataMatrix[i][col])
+                except:
+                    print("Wrong value inferred for ", self.dataMatrix[i][col], self.dtypes[col])
         # categorical data might get a little more complicated
         else:
             # idea - find all categories
@@ -224,7 +229,7 @@ class DataContainer():
         '''
         f = open(fname, mode='w', newline='')
 
-        writer = csv.writer(f, delimiter=',', quotechar='"', quoting = csv.QUOTE_MINIMAL)
+        writer = csv.writer(f, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
         # first write the header, then every entry in the data matrix
         writer.writerow(self.header)
@@ -255,12 +260,13 @@ class DataContainer():
         mapping = self.categoricalMap[col]
         return list(mapping.keys())[list(mapping.values()).index(entry)]
 
+
 dc = DataContainer('test.csv')
 dc1 = DataContainer('train.csv')
-#print(dc)
-#print(dc.getcol(3))
-#print(dc.getcol(2))
-#print(dc.getcol(0))
-#sub = subsetDataContainer(dc, [23])
-#sub.dropcol(0)
-#print([x[0] for x in sub.dataMatrix])
+# print(dc)
+# print(dc.getcol(3))
+# print(dc.getcol(2))
+# print(dc.getcol(0))
+# sub = subsetDataContainer(dc, [23])
+# sub.dropcol(0)
+# print([x[0] for x in sub.dataMatrix])
