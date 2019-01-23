@@ -33,12 +33,12 @@ def find_k_best(fname, k=20):
         rdt, rrfw, rnb, rknn, rlr, feature = line.split('\t')
         res_dt.append((float(rdt), i))
         res_rfw.append((float(rrfw), i))
-        res_nb.append((float(rrfw), i))
-        res_lr.append((float(rrfw), i))
-        res_knn.append((float(rrfw), i))
+        res_nb.append((float(rnb), i))
+        res_lr.append((float(rknn), i))
+        res_knn.append((float(rlr), i))
 
         # we calculate the average of each classifier on each occasion.
-        res_avg.append((sum([x[i] for x in res])/len(res), i))
+        res_avg.append((sum([x[i] for x in res]) / len(res), i))
 
         # finally track what features were used to generate this flow.
         features.append(feature.split(','))
@@ -46,27 +46,53 @@ def find_k_best(fname, k=20):
     res_avg = sorted(res_avg, reverse=True)
     res_dt = sorted(res_dt, reverse=True)
     res_rfw = sorted(res_rfw, reverse=True)
+    res_nb = sorted(res_nb, reverse=True)
+    res_lr = sorted(res_lr, reverse=True)
+    res_knn = sorted(res_knn, reverse=True)
 
     arr = [['Average AUC', 'Average AUC Features', 'DT AUC', 'DT AUC Features', 'RFW AUC', 'RFW AUC Features',
             'NAIVE BAYES AUC', 'NAIVE BAYES Features', 'KNN AUC', 'KNN Features', 'LOGISTIC REGRESSION AUC',
             'LOGISTIC REGRESSION Features']]
 
+    # generate array with column header specified above. This array will be written to a csv file.
+    # arr is a matrix of dimension (k + 1) * 10 columns.
     for i in range(k):
         arr.append([
             res_avg[i][0], features[res_avg[i][1]],
             res_dt[i][0], features[res_dt[i][1]],
             res_rfw[i][0], features[res_rfw[i][1]]
+            res_nb[i][0], features[res_nb[i][1]]
+            res_knn[i][0], features[res_knn[i][1]]
+            res_lr[i][0], features[res_lr[i][1]]
         ])
 
     # write to csv file
-    # 10 fold and leave one out analysis on chsoen sample points TODO
     f = open(fname + 'parsed.csv', 'w', newline='')
     writer = csv.writer(f, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
     writer.writerows(arr)
 
 
-find_k_best('results7', 100)
+def find_best_over(k=100, f=[2, 5, 6, 7, 8, 9], fnameprefix='results'):
+    """
+    Searches for results files for each value listed in f, in the present directory and attempts to parse each file.
+    It does so by calling the @find_k_best method with parameter k, for every value in f. fnameprefix is the prefix
+    given to the results file, which is 'results<num features>' by default, so results6 for 6 features and so forth.
 
+    :param k: number of top results to filter.
+    :param f: a list containing the number of features tried.
+    :param fnameprefix: the prefix of the name of the results files, see docstring of this method for clarification.
+    :return: None, writes everything to disk.
+    """
+
+    for val in f:
+        try:
+            find_k_best(fnameprefix + str(val), k)
+        except:
+            print('Tried searching for file named', fnameprefix + str(val), 'unsuccessfully. This file was skipped.')
+
+
+## Run the script over here
+find_best_over(100, [2, 5, 6, 7])
 
 ## These functions will be defined at some  point in the future, do not contain anything right now.
 def find_stats(arr):
@@ -76,3 +102,4 @@ def find_stats(arr):
 
 def commonfeatures_k_best(fname):
     pass
+
