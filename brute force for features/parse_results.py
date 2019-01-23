@@ -38,7 +38,7 @@ def find_k_best(fname, k=20):
         res_knn.append((float(rlr), i))
 
         # we calculate the average of each classifier on each occasion.
-        res_avg.append((sum([x[i] for x in res]) / len(res), i))
+        res_avg.append((sum([x[i][0] for x in res]) / len(res), i))
 
         # finally track what features were used to generate this flow.
         features.append(feature.split(','))
