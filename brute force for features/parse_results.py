@@ -60,9 +60,9 @@ def find_k_best(fname, k=20):
         arr.append([
             res_avg[i][0], features[res_avg[i][1]],
             res_dt[i][0], features[res_dt[i][1]],
-            res_rfw[i][0], features[res_rfw[i][1]]
-            res_nb[i][0], features[res_nb[i][1]]
-            res_knn[i][0], features[res_knn[i][1]]
+            res_rfw[i][0], features[res_rfw[i][1]],
+            res_nb[i][0], features[res_nb[i][1]],
+            res_knn[i][0], features[res_knn[i][1]],
             res_lr[i][0], features[res_lr[i][1]]
         ])
 
