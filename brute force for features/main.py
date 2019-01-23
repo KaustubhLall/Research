@@ -5,20 +5,12 @@ from time import time
 classind = 2
 '''
 This file will have a method to generate all possible n C k features of a given dataset.
-The dataset in question has to be pre-processed and some columns may be dropped.
-
-Todo:
-    1. Preprocess given dataset - cols 0 1 4 5 have no useful data. We can drop these.
-    2. After this, we have class in col 2, we can extract that as our label vector and drop the column.
-    3. This leaves us with 20 columns, we want a ballpark 5 features. This is 20 C 5 * 3 files to be generated,
-    which totals about 46,512 files. This may slow down disk reads/writes - we may just chose to store this in memory?
-    4. Need to run a classifier on each of these features and remember the results. Once we have a new datacontainer,
-    we can write that to csv and use that as our to-go datacontainer.
-
+The dataset in question has to be pre-processed and some columns may be dropped. For our set, we drop the first 6 
+columns, although only after we extract features from column 3 (index 2).
 
 NOTES:
  To get a column by name from a datacontainer d, use d.header.index('name of column header') and pass that result
- into d.dropcol().
+ into d.getcol().
 '''
 
 from classifier import *
@@ -68,12 +60,13 @@ def runall(testname, trainname, results, k=5):
     2. extract the column that contains the labels.
     3. remove the first 6 columns as they are metadata + labels.
     4. construct a list with all feature combinations possible.
-    5. 
+    5. make variables for progress, and the best known scores for every classifier, to display as stats.
+    6. run all sequences, use a subsetDataContainer(s) for every s in seq (list of all sequences).
+    7. rest of description inside loop.
     '''
     # load test and training "main" datacontainers
     testx = DataContainer(testname)
     trainx = DataContainer(trainname)
-
 
     # extract labels and drop the columns
     testy = [x[0] for x in subsetDataContainer(testx, [classind]).dataMatrix]
@@ -103,12 +96,32 @@ def runall(testname, trainname, results, k=5):
     # f.write(','.join(testx.header))
     timeStart = time()
     for pattern in seq:
+        '''
+        Get a DataContainer of the test and traning data.
+        
+        First, subset the container, second extract the dataMatrix.
+        
+        Run all 5 classifiers, and store the results in a variable resClassifierType. The result is a tuple with AUC
+        as well as the features used to arrive at a classification.
+        
+        Check if any of the new scores this iteration beat their respective best previous scores.
+        
+        Maintain a list of features tried so far, so we can write to file. Since all classifiers run on the same feature
+        space each iteration, we really only need one list, however it is nice to have one for each classifier.
+        
+        Write the results to file, and also display the current bests and the ETA. 
+        
+        '''
+        # Get a DataContainer of the test and traning data.
+        # First, subset the container, second extract the dataMatrix.
         subtrainx = subsetDataContainer(trainx, pattern)
         subtestx = subsetDataContainer(testx, pattern)
 
         subtrainx = subtrainx.dataMatrix
         subtestx = subtestx.dataMatrix
 
+        # Run all 5 classifiers, and store the results in a variable resClassifierType. The result is a tuple with AUC
+        # as well as the features used to arrive at a classification.
         resDT = testDecisionTree(subtrainx, trainy, subtestx, testy, pattern)
         resRFW = testRFW(subtrainx, trainy, subtestx, testy, pattern)
         resLR = testLogisticRegressor(subtrainx, trainy, subtestx, testy, pattern)
@@ -117,6 +130,7 @@ def runall(testname, trainname, results, k=5):
 
         # do auc and roc comparisons here
 
+        # Check if any of the new scores this iteration beat their respective best previous scores.
         if resDT[0] > bestDT[0]:
             bestDT = resDT
 
@@ -132,6 +146,10 @@ def runall(testname, trainname, results, k=5):
         if resNB[0] > bestNB[0]:
             bestNB = resNB
 
+        # Maintain a list of features tried so far, so we can write to file.
+        # Since all classifiers run on the same feature space each iteration, we really only need one list,
+        # however it is nice to have one for each classifier.
+        # prog tracks how many classifications out of total we have done.
         prog += 1
         featuresDT = []
         featuresRFW = []
@@ -146,15 +164,20 @@ def runall(testname, trainname, results, k=5):
             featuresLR.append(trainx.header[int(resLR[1][i:i + 2])])
             featuresKNN.append(trainx.header[int(resKNN[1][i:i + 2])])
 
-        # write test results to file
+        # Write the results to file, and also display the current bests and the ETA.
         f.write("%s\t%s\t%s\t%s\t%s\t%s\n" % (resDT[0], resRFW[0], resNB[0], resLR[0], resKNN[0], ','.join(featuresDT)))
+
+        # bookkeeping for time/ETA
         curtime = time()
         predtime = ((curtime - timeStart) * (totalseq - prog) / prog)
         predtime = str(datetime.timedelta(seconds=predtime)).split('.')[0]
+
+        # print to stdout with current states per iteration
         print("Classified %d/%d %03.02f%% \t current bests: %02.02f, %02.02f, %02.02f, %02.02f, %02.02f, ETA: %s" % (
             prog, totalseq, prog / totalseq * 1e2, bestDT[0], bestRFW[0], bestNB[0], bestKNN[0], bestLR[0], predtime),
               end='\r')
 
+    # close file and finish
     f.close()
     print("Finished!")
 
